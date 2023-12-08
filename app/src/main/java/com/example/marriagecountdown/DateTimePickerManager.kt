@@ -1,10 +1,8 @@
 package com.example.marriagecountdown
 
-import android.R
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.DialogInterface
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
