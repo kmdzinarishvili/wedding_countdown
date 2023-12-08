@@ -1,4 +1,5 @@
 package com.example.marriagecountdown
+
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
@@ -7,17 +8,20 @@ import android.os.Looper
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import java.util.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
     private var editContainer: LinearLayout? = null
-    private var selectedDate: Date? = Date(124, 1, 15, 8, 0)
+    private var selectedDate: LocalDateTime? = LocalDateTime.of(2024, 2, 15, 8, 0)
     private var countdownDays: TextView? = null
     private var countdownHours: TextView? = null
     private var countdownMinutes: TextView? = null
     private var countdownSeconds: TextView? = null
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,64 +31,53 @@ class MainActivity : AppCompatActivity() {
         countdownHours = findViewById(R.id.hours)
         countdownMinutes = findViewById(R.id.minutes)
         countdownSeconds = findViewById(R.id.seconds)
-        updateCountdown();
+        updateCountdown()
         editContainer?.setOnClickListener{
             showDatePickerDialog()
         }
     }
 
-
     private fun showDatePickerDialog() {
-        val calendar = Calendar.getInstance()
-        selectedDate?.let { calendar.time = it }
-
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val calendar = selectedDate?.toLocalDate() ?: LocalDate.now()
 
         val datePickerDialog = DatePickerDialog(
             this,
             { _, year, monthOfYear, dayOfMonth ->
-                calendar.set(year, monthOfYear, dayOfMonth)
-                selectedDate = calendar.time
+                val locSelectedDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth)
+                val selectedDateTime = locSelectedDate.atTime(selectedDate?.toLocalTime())
+                this.selectedDate = selectedDateTime
                 showTimePickerDialog()
             },
-            year,
-            month,
-            day,
+            calendar.year,
+            calendar.monthValue - 1,
+            calendar.dayOfMonth
         )
         datePickerDialog.show()
     }
 
     private fun showTimePickerDialog() {
-        val calendar = Calendar.getInstance()
-        calendar.time = selectedDate
-
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
+        val calendar = selectedDate ?: LocalDateTime.now()
 
         val timePickerDialog = TimePickerDialog(
             this,
             { _, hourOfDay, minute ->
-                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                calendar.set(Calendar.MINUTE, minute)
-                selectedDate = calendar.time
+                val selectedTime = LocalDateTime.of(calendar.toLocalDate(), LocalTime.of(hourOfDay, minute))
+                selectedDate = selectedTime
                 updateCountdown()
             },
-            hour,
-            minute,
+            calendar.hour,
+            calendar.minute,
             true
         )
         timePickerDialog.show()
     }
 
-
     private fun updateCountdown() {
-        val currentDate = Calendar.getInstance().time
+        val currentDate = LocalDateTime.now()
 
-        selectedDate?.let { selectedDate ->
-            val timeDiff = selectedDate.time - currentDate.time
-            val seconds = timeDiff / 1000
+        selectedDate?.let { selectedDateTime ->
+            val timeDiff = selectedDateTime.toEpochSecond(ZoneOffset.UTC) - currentDate.toEpochSecond(ZoneOffset.UTC)
+            val seconds = timeDiff
             val minutes = seconds / 60
             val hours = minutes / 60
             val days = hours / 24
