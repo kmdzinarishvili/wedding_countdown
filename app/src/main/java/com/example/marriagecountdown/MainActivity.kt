@@ -1,5 +1,6 @@
 package com.example.marriagecountdown
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -46,14 +47,37 @@ class MainActivity : AppCompatActivity() {
             { _, year, monthOfYear, dayOfMonth ->
                 calendar.set(year, monthOfYear, dayOfMonth)
                 selectedDate = calendar.time
-                updateCountdown()
+                showTimePickerDialog()
             },
             year,
             month,
-            day
+            day,
         )
         datePickerDialog.show()
     }
+
+    private fun showTimePickerDialog() {
+        val calendar = Calendar.getInstance()
+        calendar.time = selectedDate
+
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        val timePickerDialog = TimePickerDialog(
+            this,
+            { _, hourOfDay, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minute)
+                selectedDate = calendar.time
+                updateCountdown()
+            },
+            hour,
+            minute,
+            true
+        )
+        timePickerDialog.show()
+    }
+
 
     private fun updateCountdown() {
         val currentDate = Calendar.getInstance().time
